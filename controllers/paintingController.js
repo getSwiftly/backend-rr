@@ -63,30 +63,31 @@ async function generatePaintings(req, res) {
     
     // Generate ideas - first step (sequential)
     const newIdeas = [];
-    for (let i = 0; i < quantity; i++) {
-      const idea = await openRouterService.generateIdeas(
-        titleId, 
-        title.title, 
-        title.instructions,
-        [...prevIdeas, ...newIdeas] // Include previously generated ideas to avoid repetition
-      );
-      newIdeas.push(idea);
-      
-      // Create painting entry in processing state
-      const paintingParams = [titleId, idea.id, 'pending'];
-      if (paintingParams.some(p => p === undefined)) {
-        console.error('Attempted to execute query with undefined parameter:', { paintingParams });
-        return res.status(500).json({ error: 'Internal server error: Invalid query parameter detected' });
-      }
-      
-      await pool.execute(
-        'INSERT INTO paintings (title_id, idea_id, status) VALUES (?, ?, ?)',
-        paintingParams
-      );
-    }
     
     // Start image generation in parallel (respecting MAX_PARALLEL limit)
     const processIdeas = async () => {
+      for (let i = 0; i < quantity; i++) {
+        const idea = await openRouterService.generateIdeas(
+          titleId, 
+          title.title, 
+          title.instructions,
+          [...prevIdeas, ...newIdeas] // Include previously generated ideas to avoid repetition
+        );
+        newIdeas.push(idea);
+        
+        // Create painting entry in processing state
+        const paintingParams = [titleId, idea.id, 'pending'];
+        if (paintingParams.some(p => p === undefined)) {
+          console.error('Attempted to execute query with undefined parameter:', { paintingParams });
+          return res.status(500).json({ error: 'Internal server error: Invalid query parameter detected' });
+        }
+        
+        await pool.execute(
+          'INSERT INTO paintings (title_id, idea_id, status) VALUES (?, ?, ?)',
+          paintingParams
+        );
+      }
+
       const pendingIdeas = [...newIdeas];
       const activePromises = [];
       

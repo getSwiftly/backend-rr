@@ -464,7 +464,7 @@ function setupEventListeners() {
             console.log("Generate thumbnails response:", generateResponse.data);
             
             showLoading(false);
-            await generateServerThumbnails(currentTitle, currentTitle.references, quantity, true);
+            // await generateServerThumbnails(currentTitle, currentTitle.references, quantity, true);
             // Start polling for thumbnail status instead of loading immediately
             pollThumbnailStatus(currentTitle.id, quantity);
 
