@@ -510,7 +510,7 @@ function setupEventListeners() {
             const quantity = parseInt(quantitySelect.value) || 3;
             
             // Generate more thumbnails
-            generatePaintings(currentTitle.id, quantity);
+            await generatePaintings(currentTitle.id, quantity);
 
             showLoading(false);
             // await generateServerThumbnails(currentTitle, currentTitle.references, quantity, true);
@@ -950,7 +950,6 @@ function renderThumbnail(thumbnailData, index) {
     
     if (thumbnailData.status === 'failed') {
         // Show error state for failed thumbnails
-
         const errorDiv = document.createElement('div');
         errorDiv.className = 'thumbnail-error';
         
