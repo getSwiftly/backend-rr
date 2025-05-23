@@ -70,7 +70,9 @@ const ensureAPI = async () => {
 
 // Auth endpoints
 export const login = async (email, password) => {
+  console.log('Login endpoint about to hit', email, password);
   const apiInstance = await ensureAPI();
+  console.log('Login endpoint hit');
   return apiInstance.post('/auth/login', { email, password });
 };
 
