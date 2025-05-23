@@ -1429,5 +1429,53 @@ async function pollThumbnailStatus(titleId, expectedQuantity, attempt = 0) {
     }
 }
 
+// Username display and authentication functions
+async function updateUsernameDisplay() {
+    try {
+        const response = await getProfile();
+        if (response.data && response.data.username) {
+            document.getElementById('username-display').textContent = response.data.username;
+        }
+    } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+    }
+}
+
+async function checkAuthAndUpdateUsername() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        try {
+            await updateUsernameDisplay();
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            localStorage.removeItem('token');
+        }
+    }
+}
+
+// Initialize authentication on page load
+document.addEventListener('DOMContentLoaded', checkAuthAndUpdateUsername);
+
+// Login form handler
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    try {
+        const response = await login(email, password);
+        if (response.data && response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            await updateUsernameDisplay();
+        }
+    } catch (error) {
+        console.error('Login failed:', error);
+    }
+});
+
 // Initialize when the DOM is loaded
 document.addEventListener('DOMContentLoaded', init); 
