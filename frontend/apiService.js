@@ -7,10 +7,13 @@ let api = null;
 // Fetch server configuration and initialize the API
 const initAPI = async () => {
   try {
-    // Use the current origin to get the config (for local development, we might need to adjust this)
+    console.log('Initializing API service...');
     const configResponse = await axios.get('/api/config');
+    console.log('Config response:', configResponse.data);
+    
     const { serverIP, apiPort } = configResponse.data;
     API_URL = `http://${serverIP}:${apiPort}/api`;
+    console.log('API URL configured:', API_URL);
     
     // Create axios instance with auth token
     api = axios.create({
@@ -18,18 +21,50 @@ const initAPI = async () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      timeout: 10000 // Add timeout to avoid long waits on network issues
+      timeout: 100000 // Add timeout to avoid long waits on network issues
     });
+    console.log('Axios instance created with baseURL:', API_URL);
 
     // Add auth token to requests if available
     api.interceptors.request.use(config => {
+      console.log('Processing request:', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers
+      });
+      
       const token = localStorage.getItem('token');
       if (token) {
+        console.log('Auth token found, adding to request headers');
         config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.log('No auth token found in localStorage');
       }
       return config;
     });
+
+    // Add response interceptor for debugging
+    api.interceptors.response.use(
+      response => {
+        console.log('API Response:', {
+          url: response.config.url,
+          status: response.status,
+          data: response.data
+        });
+        return response;
+      },
+      error => {
+        console.error('API Error:', {
+          url: error.config?.url,
+          status: error.response?.status,
+          message: error.message,
+          data: error.response?.data
+        });
+        return Promise.reject(error);
+      }
+    );
     
+    console.log('API service initialization complete');
     return true;
   } catch (error) {
     console.error('Failed to fetch server configuration, using default', error);
@@ -62,9 +97,13 @@ const initAPI = async () => {
 
 // Helper function to ensure API is initialized before making requests
 const ensureAPI = async () => {
+  console.log('ensureAPI hit');
   if (!api) {
+    console.log('api is null, calling initAPI');
     await initAPI();
+    console.log('initAPI complete');
   }
+  console.log('api is not null, returning api');
   return api;
 };
 
